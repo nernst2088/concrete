@@ -1,1 +1,1 @@
-Merge the repos related to cement and concrete in this one repo.
+Repos related to cement & concrete are merged into this repo.
