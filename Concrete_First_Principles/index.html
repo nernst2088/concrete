@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CFP-Platform — Concrete First Principles</title>
 <style>
-:root { --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --good:#3fb950; --warn:#d29922; --bad:#f85149; }
+:root { --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --good:#3fb950; --warn:#d29922; --bad:#f85149; --eqbg:#0a0d12; }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; line-height:1.65; }
 .layout { display:grid; grid-template-columns:260px 1fr; min-height:100vh; }
@@ -23,7 +23,7 @@ h2 { font-size:20px; margin:24px 0 12px; color:var(--accent); }
 h3 { font-size:16px; margin:16px 0 8px; }
 p { margin-bottom:12px; font-size:14px; }
 .justify { text-align:justify; }
-.eq { background:#0a0d12; border:1px solid var(--border); border-radius:6px; padding:16px 20px; margin:12px 0; overflow-x:auto; font-size:14px; text-align:center; }
+.eq { background:var(--eqbg); border:1px solid var(--border); border-radius:6px; padding:16px 20px; margin:12px 0; overflow-x:auto; font-size:14px; text-align:center; }
 .plain-eq { font-family:Consolas,Monaco,monospace; font-size:13px; white-space:pre-wrap; text-align:left; }
 .cite { color:var(--accent); font-size:10.5px; vertical-align:super; }
 a { color:var(--accent); }
@@ -53,8 +53,23 @@ td { padding:8px 12px; border:1px solid var(--border); }
 .status-pill { padding:4px 10px; border-radius:10px; background:rgba(210,153,34,.15); color:var(--warn); font-size:11px; display:inline-block; }
 .status-pill.ok { background:rgba(63,185,80,.15); color:var(--good); }
 .status-ok { color:var(--good); } .status-warn { color:var(--warn); } .status-bad { color:var(--bad); }
-html.pdf-light { --bg:#ffffff; --panel:#f6f8fa; --border:#d0d7de; --text:#1f2328; --muted:#57606a; --accent:#0969da; }
-@media print { .sidebar,.no-print,.modal,#err-banner { display:none !important; } .content { padding:0; max-width:100%; } .panel { border:1px solid #999; page-break-inside:avoid; } body { background:#fff; color:#000; } }
+html.pdf-light { --bg:#ffffff; --panel:#f6f8fa; --border:#d0d7de; --text:#1f2328; --muted:#57606a; --accent:#0969da; --eqbg:#f6f8fa; }
+html.pdf-light .btn { visibility:hidden; }
+/* v5.0.6: landscape A4 — 297 mm ≈ 1123 px fits the 1100 px content column;
+   break-avoidance moved from whole panels (taller than a page → ignored/clipped)
+   to atomic rows / equations / charts; buttons and overlays hidden. */
+@page { size:A4 landscape; margin:8mm; }
+@media print {
+  .sidebar,.no-print,.modal,#err-banner,#pdf-status,.btn { display:none !important; }
+  .content { padding:0; max-width:100%; }
+  .panel { border:1px solid #999; }
+  tr,.eq,.chart-cap { page-break-inside:avoid; }
+  .charts { display:block; }
+  .charts>div { page-break-inside:avoid; margin-bottom:6mm; }
+  .chart-box { height:auto !important; }
+  table { font-size:11px; }
+  body { background:#fff; color:#000; }
+}
 @media (max-width:900px) { .layout { grid-template-columns:1fr; } .sidebar { position:static; height:auto; } .charts { grid-template-columns:1fr; } }
 </style>
 </head>
@@ -73,7 +88,7 @@ window.addEventListener('DOMContentLoaded', function() {
 <div class="layout">
 <nav class="sidebar">
 <div class="brand">CFP-Platform</div>
-<div class="brand-sub">Concrete First Principles · v5.0.5</div>
+<div class="brand-sub">Concrete First Principles · v5.0.7</div>
 <a class="nav-item active" href="#axioms">Axioms (A1–A8)</a>
 <a class="nav-item" href="#equations">Equations (M1–M22)</a>
 <a class="nav-item" href="#prov">Provenance Ledger</a>
@@ -99,7 +114,7 @@ window.addEventListener('DOMContentLoaded', function() {
 </nav>
 <main class="content">
 <h1 id="top">Concrete First Principles</h1>
-<p class="justify">This platform was developed by <b>Dr. X.Y. Lu</b> with the assistance of <b>ChatGLM 5.3</b>. It models concrete from first principles — drawing on cement chemistry, particle packing, suspension rheology, fracture mechanics, and corrosion electrochemistry — through eight axioms, twenty-two governing equations with parameter tables and a provenance ledger, and a working simulator that chains mix design, fresh-state properties, mechanics, fibers, and four durability arenas into twenty computed figures. It is intended <b>not only as a working memo</b>, but as an open invitation: <b>those who find it promising are warmly welcome to enrich and extend it</b> (see How to Contribute).</p>
+<p class="justify">This platform was developed by <b>Dr. X.Y. Lu</b> with the assistance of <b>ChatGLM</b>. It models concrete from first principles — drawing on cement chemistry, particle packing, suspension rheology, fracture mechanics, and corrosion electrochemistry — through eight axioms, twenty-two governing equations with parameter tables and a provenance ledger, and a working simulator that chains mix design, fresh-state properties, mechanics, fibers, and four durability arenas into twenty computed figures. It is intended <b>not only as a working memo</b>, but as an open invitation: <b>those who find it promising are warmly welcome to enrich and extend it</b> (see How to Contribute).</p>
 <div id="axioms"></div><div id="equations"></div><div id="prov"></div><div id="pyramid"></div><div id="dual"></div><div id="chemistry"></div><div id="scm"></div><div id="aggregates"></div><div id="glossary"></div>
 
 <div id="concrete">
@@ -185,19 +200,18 @@ window.addEventListener('DOMContentLoaded', function() {
 
 <div id="pdf-modal" class="modal hidden"><div class="modal-box">
 <h3 style="margin-bottom:12px">Generate PDF Report</h3>
-<p style="font-size:13px;color:var(--muted);margin-bottom:16px">Any failure falls back automatically to the print dialog.</p>
-<button class="btn" onclick="exportEngine('print')">A · Browser Print — vector, best quality</button>
-<button class="btn" onclick="exportEngine('html2pdf')">B · Direct Download — html2pdf.js (raster)</button>
-<button class="btn btn-ghost" onclick="exportEngine('server')">C · Server PDF — Puppeteer</button>
-<button class="btn btn-ghost" style="margin-top:16px;width:100%;text-align:center" onclick="closePdfModal()">Cancel</button>
+<p style="font-size:13px;color:var(--muted);margin-bottom:16px">A · vector text, landscape A4 — charts re-render at print size (one per row, full column width) on beforeprint. B · per-panel raster + jsPDF — equations re-render in light theme; page cuts fall only at block boundaries, so charts are never split; only oversized text blocks slice. (A former server option was removed: static hosting has no /api/pdf.)</p>
+<button class="btn" onclick="exportEngine('print')">A · Browser Print — vector, landscape A4, charts at print size</button>
+<button class="btn" onclick="exportEngine('html2pdf')">B · Direct Download — per-panel raster, block-boundary paging</button>
+<button class="btn" style="margin-top:16px;background:var(--muted);width:100%;text-align:center" onclick="closePdfModal()">Cancel</button>
 </div></div>
 
 <script>
 /* ================= CORE BLOCK ================= */
 const DATA = {
-/* v5.0.4: single source of truth for numeric-input ranges — drives the
-   Input Specifications panel, native HTML min/max attributes, runtime
-   clamping, and the clamp report. 31 numerics; 9 selects are closed enums. */
+/* single source of truth for numeric-input ranges — drives the Input
+   Specifications panel, native HTML min/max attributes, runtime clamping,
+   and the clamp report. 31 numerics; 9 selects are closed enums. */
 inputSpecs: [
  {id:'mx-c',   name:'C — cement',              unit:'kg/m³',    min:50,   max:1000, rat:'demonstrative powder floor / above UHPC binder totals'},
  {id:'mx-wb',  name:'(w/b)nom',                unit:'–',        min:0.16, max:0.90, rat:'UHPC packed-powder floor / Abrams-law practical ceiling [8]'},
@@ -344,7 +358,7 @@ equations: [
   params:[{s:'f<sub>t</sub>, f<sub>r</sub>, f<sub>v</sub>',m:'direct tensile / flexural / shear strength',u:'MPa'},{s:'f<sub>m</sub>, k<sub>t</sub>',m:'matrix strength / t-c ratio (0.06, EMP ⚠)',u:'MPa, –'},{s:'σ<sub>br</sub>',m:'fiber bridging stress',u:'MPa'},{s:'κ<sub>flex</sub>',m:'bending redistribution = 1.5·λ',u:'–'},{s:'k<sub>r</sub>, m<sub>W</sub>',m:'Weibull flexural factor / modulus (12)',u:'–'},{s:'0.62, 0.17',m:'ACI coefficients — NORM',u:'√MPa'}]},
  {id:'M15',name:'Fresh-Concrete Rheology',tag:'std',
   math:String.raw`\tau(\dot\gamma)=\tau_0+\mu_B\dot\gamma;\quad \mu_B=\mu_w\Big(1-\tfrac{\phi_b}{\phi_{m1}}\Big)^{-2.5\phi_{m1}}\Big(1-\tfrac{g}{\phi_{m2}}\Big)^{-[\eta]\phi_{m2}};\quad s\approx 300\,e^{-\tau_0/120}`,
-  plain:'τ(γ̇) = τ_0 + μ_B·γ̇ ;   μ_B = μ_w·(1 − φ_b/φ_m1)^(−2.5·φ_m1)·(1 − g/φ_m2)^(−[η]·φ_m2) ;   s ≈ 300·e^(−τ_0/120)',
+  plain:'τ(γ̇) = τ_0 + μ_B·γ̇ ;   μ_B = μ_w·(1 − φ_b/φ_m1)^(−2.5·φ_m1)·(1 − g/φ_m2)^(−[η]·φ_m2) ;   s ≈ 300·e^(−τ₀/120)',
   text:'Bingham; τ₀ carries SP dispersion × aggregate interlock × fiber penalty. φ<sub>m1</sub> = 0.60 normal / 0.74 UHPC mode. Absolute viscosity order-of-magnitude ⚠. Bingham model <span class="cite">[22]</span>; Krieger–Dougherty <span class="cite">[23]</span>.',
   params:[{s:'τ<sub>0</sub><sup>eff</sup>',m:'yield stress (M9×M13×M17 chain)',u:'Pa'},{s:'μ<sub>B</sub>',m:'Bingham plastic viscosity (slope of τ vs γ̇)',u:'Pa·s'},{s:'φ<sub>b</sub>, φ<sub>m1</sub>',m:'powder fraction / max packing',u:'–'},{s:'g, φ<sub>m2</sub>',m:'aggregate+fiber fraction / max packing',u:'–'},{s:'[η]',m:'KD intrinsic viscosity (2.5)',u:'–'},{s:'s',m:'slump estimate (M⚠ calibration)',u:'mm'}]},
  {id:'M16',name:'Multi-Blend SCM — CH Competition',tag:'std',
@@ -560,7 +574,7 @@ glossary: [
  {s:'η<sub>m</sub>, η<sub>f</sub>, P<sub>f</sub>',m:'stress ratios (matrix / with fiber) / failure prob.',u:'–, –, –',e:'M7/A6/M17',c:'calc'},
  {s:'b, D<sub>CO₂</sub>',m:'CO₂ binding / carbonated-zone diffusivity',u:'mol/m³, m²/s',e:'M6/M8',c:'✓ / M⚠'}]
 };
-/* v5.0.4: input-spec registry — single source of truth for ranges */
+/* input-spec registry — single source of truth for ranges */
 const SPEC={};
 DATA.inputSpecs.forEach(function(s){ SPEC[s.id]=s; });
 let _clampLog=[];
@@ -634,7 +648,6 @@ function renderAll(){
  document.getElementById('refs').innerHTML=h+'</ol></div>';
  renderInputSpec();
 }
-/* v5.0.5: real implementation — previously claimed but missing (caught by self-check) */
 function renderInputSpec(){
  let h='<div class="panel"><h2>Input Specifications</h2>';
  h+='<p class="justify" style="font-size:13px;color:var(--muted)">The 31 numeric inputs below share one range specification — this table is the single source of truth: the same records populate the HTML min/max attributes (native spinner bounds and validation styling), the runtime clamping, and the clamp report shown above the results. Data type is number throughout — enforced by the input elements and by runtime parsing; an empty or non-numeric entry falls back to its default. The nine dropdown selectors are closed enumerations: the option list is the range by construction. Two aggregate behaviors act beyond per-field bounds — SCM shares are auto-scaled when their sum exceeds 70%, and QS grade shares are normalized to sum 100%.</p>';
@@ -1302,6 +1315,8 @@ const KCH=[
  {css:'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css',js:['https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js','https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js']},
  {css:'https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/katex.min.css',js:['https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/katex.min.js','https://cdn.bootcdn.net/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js']}];
 const ECH=['https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js','https://unpkg.com/echarts@5.4.3/dist/echarts.min.js','https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js','https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js'];
+const H2C=['https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js','https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js','https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'];
+const JSP=['https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js','https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'];
 function loadCss(h){return new Promise(function(res){const l=document.createElement('link');l.rel='stylesheet';l.href=h;l.onload=res;l.onerror=res;document.head.appendChild(l);});}
 function loadOne(s){return new Promise(function(res,rej){const x=document.createElement('script');x.src=s;x.onload=res;x.onerror=function(){rej(new Error(s));};document.head.appendChild(x);});}
 async function loadKaTeX(){
@@ -1323,27 +1338,120 @@ function showStatus(msg,sticky){let el=document.getElementById('pdf-status');
  el.textContent=msg;el.style.display='block';if(!sticky)setTimeout(()=>el.style.display='none',4000);}
 function generatePDF(){document.getElementById('pdf-modal').classList.remove('hidden');}
 function closePdfModal(){document.getElementById('pdf-modal').classList.add('hidden');}
-async function exportEngine(eng){closePdfModal();
+async function loadSeq(list){ for(const u of list){ try{ await loadOne(u); return true; }catch(e){} } return false; }
+/* v5.0.7: print-size chart re-render — canvas bitmaps must be re-rendered at
+   print dimensions; CSS stretching alone only blurs them. */
+window.addEventListener('beforeprint',function(){
+ if(!window.echarts)return;
+ document.querySelectorAll('#gallery-grid .chart-box').forEach(function(el){
+  const ch=echarts.getInstanceByDom(el);
+  if(ch){ try{ ch.resize({width:1000,height:566}); }catch(e){} }
+ });
+});
+window.addEventListener('afterprint',function(){
+ setTimeout(function(){
+  if(!window.echarts)return;
+  document.querySelectorAll('#gallery-grid .chart-box').forEach(function(el){
+   const ch=echarts.getInstanceByDom(el);
+   if(ch){ try{ ch.resize(); }catch(e){} }
+  });
+ },60);
+});
+/* v5.0.7: per-panel capture with block-boundary page flow.
+   Fixes: (1) .eq black-on-black — eq background now theme-variable and charts
+   re-rendered light before capture; (2) charts split across pages — page cuts
+   fall only at block boundaries; chart wrappers explode from the grid and are
+   marked unsplittable; only oversized text blocks are sliced. */
+async function exportPanels(){
+ showStatus('Rendering PDF (per-panel)…',true);
+ document.documentElement.classList.add('pdf-light');
+ if(window.echarts){ try{ paintCharts(); }catch(e){} }
+ await new Promise(r=>setTimeout(r,300));
+ const h2c=window.html2canvas||((await loadSeq(H2C))?window.html2canvas:null);
+ if(!h2c) throw new Error('html2canvas CDN unavailable');
+ const jsOK=await loadSeq(JSP);
+ if(!jsOK||!window.jspdf||!window.jspdf.jsPDF) throw new Error('jsPDF CDN unavailable');
+ const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+ const PW=doc.internal.pageSize.getWidth(), PH=doc.internal.pageSize.getHeight(), M=8;
+ const imgW=PW-2*M, pageMM=PH-2*M;
+ const panels=Array.prototype.slice.call(document.querySelectorAll('.content .panel'));
+ if(!panels.length) throw new Error('nothing to export');
+ function drawRegion(canvas,y0,y1){
+  const c2=document.createElement('canvas'); c2.width=canvas.width; c2.height=Math.max(1,y1-y0);
+  c2.getContext('2d').drawImage(canvas,0,y0,canvas.width,c2.height,0,0,canvas.width,c2.height);
+  return c2;
+ }
+ let first=true;
  try{
-  if(eng==='print'){showStatus('Print dialog — choose "Save as PDF"…',true);window.print();}
-  else if(eng==='html2pdf'){showStatus('Rendering PDF (10–30 s)…',true);
-   document.documentElement.classList.add('pdf-light');
-   await new Promise(r=>setTimeout(r,150));
-   let ok=false;
-   for(const u of ['https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js','https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js']){
-    try{await loadOne(u); if(window.html2pdf){ok=true;break;}}catch(e){}}
-   if(!ok)throw new Error('html2pdf CDN unavailable');
-   await window.html2pdf().set({margin:[14,12,16,12],filename:'CFP-Report.pdf',
-    image:{type:'jpeg',quality:0.95},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},
-    jsPDF:{unit:'mm',format:'a4'},pagebreak:{mode:['css','avoid'],avoid:['.panel','tr','.eq','.chart-box']}}).from(document.querySelector('.content')).save();
-   showStatus('PDF downloaded');}
-  else if(eng==='server'){showStatus('Requesting server PDF…',true);
-   const resp=await fetch('/api/pdf');
-   if(!resp.ok)throw new Error('HTTP '+resp.status);
-   const blob=await resp.blob();const url=URL.createObjectURL(blob);
-   const a=document.createElement('a');a.href=url;a.download='CFP-Report.pdf';a.click();URL.revokeObjectURL(url);}
- }catch(e){showStatus('Export failed — falling back to print',true);window.print();}
- finally{document.documentElement.classList.remove('pdf-light');runConcrete();}}
+  for(let p=0;p<panels.length;p++){
+   const panel=panels[p];
+   showStatus('Rendering panel '+(p+1)+'/'+panels.length+'…',true);
+   const pr=panel.getBoundingClientRect();
+   const blocks=[];
+   const collect=function(el){
+    if(el.classList&&el.classList.contains('charts')){
+     Array.prototype.forEach.call(el.children,collect); return;
+    }
+    const r=el.getBoundingClientRect();
+    if(r.height<2) return;
+    blocks.push({top:r.top-pr.top,bottom:r.bottom-pr.top,
+     noSplit:!!(el.querySelector&&el.querySelector('canvas'))});
+   };
+   Array.prototype.forEach.call(panel.children,collect);
+   if(!blocks.length) continue;
+   blocks.sort(function(a,b){return a.top-b.top;});
+   const canvas=await h2c(panel,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false});
+   const S=canvas.height/Math.max(1,pr.height);
+   const pxMM=canvas.width/imgW;
+   const pagePx=Math.floor(pageMM*pxMM);
+   let i=0;
+   while(i<blocks.length){
+    let j=i,acc=0;
+    while(j<blocks.length){
+     const hB=Math.ceil((blocks[j].bottom-blocks[j].top)*S);
+     if(acc+hB<=pagePx){acc+=hB;j++;}else break;
+    }
+    const needPage=!first;
+    if(j>i){
+     const y0=(i===0&&blocks[i].top<1)?0:Math.max(0,Math.floor(blocks[i].top*S));
+     let y1=(j<blocks.length)?Math.ceil(blocks[j].top*S):canvas.height;
+     y1=Math.min(y1,canvas.height,y0+pagePx);
+     if(needPage)doc.addPage();
+     doc.addImage(drawRegion(canvas,y0,y1).toDataURL('image/jpeg',0.92),'JPEG',M,M,imgW,(y1-y0)/pxMM);
+     first=false; i=j;
+    }else{
+     const b=blocks[i];
+     const y0=Math.max(0,Math.floor(b.top*S));
+     const yB=Math.min(canvas.height,Math.ceil(b.bottom*S));
+     if(needPage)doc.addPage();
+     if(b.noSplit||yB-y0<=pagePx){
+      const c2=drawRegion(canvas,y0,yB);
+      const AR=c2.width/Math.max(1,c2.height);
+      const hMM=Math.min(pageMM,imgW/AR);
+      const wMM=hMM*AR;
+      doc.addImage(c2.toDataURL('image/jpeg',0.92),'JPEG',(PW-wMM)/2,M,wMM,hMM);
+      first=false; i++;
+     }else{
+      const y1=Math.min(canvas.height,y0+pagePx);
+      doc.addImage(drawRegion(canvas,y0,y1).toDataURL('image/jpeg',0.92),'JPEG',M,M,imgW,(y1-y0)/pxMM);
+      b.top=y1/S; first=false; continue;
+     }
+    }
+   }
+  }
+ }finally{
+  document.documentElement.classList.remove('pdf-light');
+  if(window.echarts){ try{ paintCharts(); }catch(e){} }
+ }
+ doc.save('CFP-Report.pdf');
+ showStatus('PDF downloaded');
+}
+async function exportEngine(eng){ closePdfModal();
+ try{
+  if(eng==='print'){ showStatus('Print dialog — choose "Save as PDF" (landscape A4)…',true); window.print(); }
+  else if(eng==='html2pdf'){ await exportPanels(); }
+ }catch(e){ showStatus('Export failed ('+e.message+') — falling back to print',true); window.print(); }
+}
 window.addEventListener('DOMContentLoaded',async function(){
  initInputSpecs();
  renderAll();
