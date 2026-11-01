@@ -55,18 +55,19 @@ td { padding:8px 12px; border:1px solid var(--border); }
 .status-ok { color:var(--good); } .status-warn { color:var(--warn); } .status-bad { color:var(--bad); }
 html.pdf-light { --bg:#ffffff; --panel:#f6f8fa; --border:#d0d7de; --text:#1f2328; --muted:#57606a; --accent:#0969da; --eqbg:#f6f8fa; }
 html.pdf-light .btn { visibility:hidden; }
-/* v5.0.6: landscape A4 — 297 mm ≈ 1123 px fits the 1100 px content column;
-   break-avoidance moved from whole panels (taller than a page → ignored/clipped)
-   to atomic rows / equations / charts; buttons and overlays hidden. */
+html.printing .charts { display:block; }
+html.printing .charts>div { margin-bottom:20px; }
 @page { size:A4 landscape; margin:8mm; }
 @media print {
   .sidebar,.no-print,.modal,#err-banner,#pdf-status,.btn { display:none !important; }
+  * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .content { padding:0; max-width:100%; }
-  .panel { border:1px solid #999; }
+  .panel { border:1px solid #999; padding:10px; }
   tr,.eq,.chart-cap { page-break-inside:avoid; }
   .charts { display:block; }
   .charts>div { page-break-inside:avoid; margin-bottom:6mm; }
   .chart-box { height:auto !important; }
+  .chart-box canvas { width:100% !important; height:auto !important; }
   table { font-size:11px; }
   body { background:#fff; color:#000; }
 }
@@ -88,7 +89,7 @@ window.addEventListener('DOMContentLoaded', function() {
 <div class="layout">
 <nav class="sidebar">
 <div class="brand">CFP-Platform</div>
-<div class="brand-sub">Concrete First Principles · v5.0.7</div>
+<div class="brand-sub">Concrete First Principles · v5.0.8</div>
 <a class="nav-item active" href="#axioms">Axioms (A1–A8)</a>
 <a class="nav-item" href="#equations">Equations (M1–M22)</a>
 <a class="nav-item" href="#prov">Provenance Ledger</a>
@@ -200,8 +201,8 @@ window.addEventListener('DOMContentLoaded', function() {
 
 <div id="pdf-modal" class="modal hidden"><div class="modal-box">
 <h3 style="margin-bottom:12px">Generate PDF Report</h3>
-<p style="font-size:13px;color:var(--muted);margin-bottom:16px">A · vector text, landscape A4 — charts re-render at print size (one per row, full column width) on beforeprint. B · per-panel raster + jsPDF — equations re-render in light theme; page cuts fall only at block boundaries, so charts are never split; only oversized text blocks slice. (A former server option was removed: static hosting has no /api/pdf.)</p>
-<button class="btn" onclick="exportEngine('print')">A · Browser Print — vector, landscape A4, charts at print size</button>
+<p style="font-size:13px;color:var(--muted);margin-bottom:16px">Both paths share one print pipeline: light theme + charts re-rendered at 1020×590 px and displayed full-column-width (canvas width:100%, aspect preserved). A · vector text via the browser print dialog. B · per-panel raster + jsPDF — page cuts fall only at block boundaries; charts are never split. (A former server option was removed: static hosting has no /api/pdf.)</p>
+<button class="btn" onclick="exportEngine('print')">A · Browser Print — vector, landscape A4, adaptive charts</button>
 <button class="btn" onclick="exportEngine('html2pdf')">B · Direct Download — per-panel raster, block-boundary paging</button>
 <button class="btn" style="margin-top:16px;background:var(--muted);width:100%;text-align:center" onclick="closePdfModal()">Cancel</button>
 </div></div>
@@ -396,42 +397,45 @@ equations: [
   plain:'Gypsum form: Na₂SO₄ + CH → gypsum (softening — fuel = CH, computed by M16) ;   Ettringite form: gypsum + C₃A hydrates → ettringite (expansive ≈ +55% ΔV_solid ⚠ — fuel = C₃A, DECLARED) ;   Prescription (ACI 318 T.19.3.1.1): S1 w/b ≤ 0.50 & C₃A ≤ 8% ; S2 ≤ 0.45 & ≤ 5% ; S3 + pozzolan ;   SCM windows FA ≥ 25 / SL ≥ 50 / SF ≥ 10 / MK ≥ 10 → C₃A-limit & prescription credit ⚠ ;   Thaumasite gate: T < 15 °C AND XA ≥ 2 AND carbonate source (M21 ACR flag) → verify ⚠',
   text:'XA class and C₃A are DECLARED (site investigation / cement certificate); the reaction chain is chemistry-FP-form; CH fuel is COMPUTED (M16 residual); prescription limits are code (Emp). Tiers: LOW (XA0) / PRESCRIPTION-FAIL / PARTIAL (S3 without pozzolan) / MITIGATED (window) / WITHIN-PRESCRIPTION. Quantitative expansion &amp; degradation rates NOT modeled. DEF (heat cure) outside the 28-d isothermal scope. Seawater XS ≈ XA2 sulfate + chloride: M20 covers the Cl side, no double count. Ettringite expansion mechanism: Mehta <span class="cite">[38]</span>; sulfate-attack monograph: Skalny et al. <span class="cite">[39]</span>; thaumasite: Expert Group <span class="cite">[40]</span>; prescription limits: ACI 318 <span class="cite">[41]</span>, EN 206 <span class="cite">[42]</span>.',
   params:[{s:'XA, SO₄²⁻',m:'declared exposure class (EN 206: XA1 200–600 / XA2 600–3000 / XA3 3000–6000 mg/L)',u:'–, mg/L'},{s:'C₃A*',m:'declared cement tricalcium aluminate (certificate) — limits 8 / 5%',u:'%'},{s:'w/b limits',m:'0.50 / 0.45 / 0.45 for S1 / S2 / S3 (ACI 318 ⚠)',u:'–'},{s:'CH fuel',m:'gypsum-form fuel = M16 residual CH (kg/m³) — SCM credit computed',u:'kg/m³'},{s:'W<sub>SCM</sub>',m:'sulfate windows FA 25 / SL 50 / SF 10 / MK 10 % (Emp ⚠)',u:'%'},{s:'thaumasite gate',m:'T<15 °C ∧ XA≥2 ∧ carbonate → verify ⚠',u:'–'},{s:'boundary',m:'expansion & rate NOT modeled; DEF out of scope',u:'–'}]}],
+/* v5.0.8: all 37 entries now use true sub/superscript markup — consistent
+   with the rest of the document's table typography (KaTeX stays for the
+   display equations; table math uses HTML sub/sup, dependency-free). */
 prov: [
- {eq:'M2 Heat balance ρc_p ∂T = λ∇²T + Q̇', cls:'FP', note:'conservation law; Q from reaction enthalpies [5]'},
- {eq:'M3 φ_cap, X (Powers accounting)', cls:'FP', note:'stoichiometric mass balance [6]'},
- {eq:'M8 b = CH_rem/74', cls:'FP', note:'molar stoichiometry [5]'},
- {eq:'M20 Faraday: 11.6 μm/yr per μA/cm²', cls:'FP', note:'exact electrochemical stoichiometry'},
- {eq:'M7 LEFM: K_I = Yσ√(πa)', cls:'FP', note:'linear elasticity + energy release rate [14,15]'},
- {eq:'M14 Tresca shear bound', cls:'FP', note:'classical plasticity lower bound'},
- {eq:'hsE — Hashin–Shtrikman bounds', cls:'FP', note:'variational mechanics [12]'},
- {eq:'M20 Fick Ⅱ erf profile + t_init inversion', cls:'FP-form', note:'conservation + analytic solution; D_28, m empirical [30]'},
- {eq:'M21 alkali inventory A_Na = m_clinker·Na₂O_eq/100', cls:'FP-form', note:'pure mass balance; Na₂O_eq is a certificate input'},
- {eq:'M22 reaction chain (gypsum / ettringite forms)', cls:'FP-form', note:'stoichiometric chemistry [5,38]; rates and expansion NOT modeled'},
+ {eq:'M2 heat balance ρ·c<sub>p</sub>·∂T/∂t = λ·∇²T + Q̇', cls:'FP', note:'conservation law; Q from reaction enthalpies [5]'},
+ {eq:'M3 φ<sub>cap</sub> = (w/c − 0.36·α)/(w/c + 0.317); X = 0.675·α/(w/c + 0.315·α)', cls:'FP', note:'stoichiometric mass balance [6]'},
+ {eq:'M8 b = CH<sub>rem</sub>/74', cls:'FP', note:'molar stoichiometry [5]'},
+ {eq:'M20 Faraday: Δx = 11.6·i<sub>corr</sub> μm/yr', cls:'FP', note:'exact electrochemical stoichiometry'},
+ {eq:'M7 LEFM: K<sub>I</sub> = Y·σ·√(π·a) vs K<sub>IC</sub>', cls:'FP', note:'linear elasticity + energy release rate [14,15]'},
+ {eq:'M14 Tresca shear bound f<sub>v</sub> ≤ f<sub>t</sub>', cls:'FP', note:'classical plasticity lower bound'},
+ {eq:'hsE — Hashin–Shtrikman bounds on E<sub>c</sub>', cls:'FP', note:'variational mechanics [12]'},
+ {eq:'M20 Fick Ⅱ: C(x,t) = C<sub>s</sub>·[1 − erf(x/(2·√(D<sub>a</sub>·t)))] ; t<sub>init</sub> inversion', cls:'FP-form', note:'conservation + analytic solution; D<sub>28</sub>, m empirical [30]'},
+ {eq:'M21 alkali inventory A<sub>Na</sub> = m<sub>clinker</sub>·Na₂O<sub>eq</sub>/100', cls:'FP-form', note:'pure mass balance; Na₂O<sub>eq</sub> is a certificate input'},
+ {eq:'M22 reaction chain: SO₄²⁻ + CH → gypsum; + C₃A → ettringite (ΔV<sub>s</sub> ≈ +55%)', cls:'FP-form', note:'stoichiometric chemistry [5,38]; rates and expansion NOT modeled'},
  {eq:'M22 CH fuel gauge (M16 residual)', cls:'FP-form', note:'computed from the M16 competition — SCM mitigation credit is model-derived'},
- {eq:'M1 kinetics form exp[−(τ/t)^β]', cls:'FP-form', note:'Jander–Avrami [2,3]; τ, β fitted'},
- {eq:'M6 Stefan front', cls:'FP-form', note:'form FP; D_CO₂ empirical [13]'},
- {eq:'A6/M7 Weibull P_f', cls:'FP-form', note:'extreme-value statistics [1]; m_W empirical'},
- {eq:'M17 σ_br pull-out + orientation integral', cls:'FP-form', note:'force balance [24]; τ_bond, λ empirical'},
- {eq:'M15 Krieger–Dougherty viscosity', cls:'FP-form', note:'suspension physics [23] ⚠'},
+ {eq:'M1 kinetics α<sub>c</sub>(t) = α<sub>u</sub>·exp[−(τ/t<sub>e</sub>)<sup>β</sup>]', cls:'FP-form', note:'Jander–Avrami [2,3]; τ, β fitted'},
+ {eq:'M6 Stefan front x<sub>f</sub> = √(2·D<sub>CO₂</sub>·C₀·t/b)', cls:'FP-form', note:'form FP; D<sub>CO₂</sub> empirical [13]'},
+ {eq:'A6/M7 Weibull P<sub>f</sub> = 1 − exp[−(σ/σ₀)<sup>m</sup>]', cls:'FP-form', note:'extreme-value statistics [1]; m<sub>W</sub> empirical'},
+ {eq:'M17 σ<sub>br</sub> = η₀·λ<sub>incl</sub>·λ·V<sub>f</sub>·τ<sub>bond</sub>·(l/d)', cls:'FP-form', note:'force balance [24]; τ<sub>bond</sub>, λ empirical'},
+ {eq:'M15 μ<sub>B</sub> = μ<sub>w</sub>·(1−φ<sub>b</sub>/φ<sub>m1</sub>)<sup>−2.5φ<sub>m1</sub></sup>·(1−g/φ<sub>m2</sub>)<sup>−[η]φ<sub>m2</sub></sup>', cls:'FP-form', note:'suspension physics [23] ⚠'},
  {eq:'Input ranges & clamping (31 numerics)', cls:'Emp', note:'physical bounds with literature/code rationale (Input Specifications); enforced in HTML attributes + runtime; clamps reported'},
- {eq:'Frost tiers', cls:'Emp', note:'mechanism FP [17,18,19]; thresholds modeling choices ⚠'},
- {eq:'M4 Pickett restraint σ_t', cls:'Semi-emp', note:'elastic approximation [9]; creep empirical'},
- {eq:'M9 SP saturation model', cls:'Semi-emp', note:'coverage concept; coefficients empirical [16]'},
- {eq:'M21 thresholds 3.0/2.5 + SCM windows + Li 0.74', cls:'Emp', note:'CSA [37] / RILEM AAR-7 [35] / Thomas [34]; SCM alkali release not counted ⚠'},
- {eq:'M22 prescription limits (w/b, C₃A≤8/5%) + sulfate windows FA25/SL50/SF10/MK10', cls:'Emp', note:'ACI 318 [41] / EN 206 [42] / Thomas; C₃A-limit credit via SCM window is a modeling choice ⚠'},
- {eq:'M3′ f_m = 235·X³', cls:'Emp', note:'Powers–Popovics correlation [6,7]'},
- {eq:'E_p = 30·(X/X_u)³', cls:'Emp', note:'paste-modulus fit'},
- {eq:'ε_auto fit', cls:'Emp', note:'Tazawa-type [10]'},
- {eq:'k_t = 0.06', cls:'Emp', note:'most sensitive EMP constant ⚠'},
- {eq:'ACI NORM coefficients', cls:'Emp', note:'code correlations — cross-check only [41]'},
- {eq:'M13 tables', cls:'Emp', note:'literature ranges [21]'},
- {eq:'k_d, slump calibration', cls:'Emp', note:'calibrated relations'},
- {eq:'M20 exposure table, C_crit, i_corr, x_crack, m', cls:'Emp', note:'code/literature ranges [32,33] ⚠'},
- {eq:'dCrit = τ₀/(Δρ·g) settlement trap', cls:'FP-form', note:'yield-stress trapping scale; shape/lubrication coefficient (literature ×2–5) omitted ⚠'},
- {eq:'M16 CH competition allocation', cls:'Model', note:'mean-field; conservation by construction [20]'},
- {eq:'M18 Bogue weights + calibration; CSA/CAC CH_y trace estimates', cls:'Calib', note:'calibrated to fixed anchors [26]; kernel-specific CH_y ⚠; C₃A declared (M22)'},
- {eq:'M19 φ_pack(q); q_eff LSQ', cls:'Model', note:'φ_pack heuristic ⚠; Andreasen [27], Funk–Dinger [28]'},
- {eq:'χ_eff(φ_cap) ITZ interpolation', cls:'Model', note:'anchored interpolation'},
+ {eq:'Frost tiers: φ<sub>cap</sub> ≤ 0.10 ; L̄ ≤ 200 μm ∧ A ≥ 3.5%', cls:'Emp', note:'mechanism FP [17,18,19]; thresholds modeling choices ⚠'},
+ {eq:'M4 σ<sub>t</sub> = K<sub>R</sub>·E<sub>c</sub>·ε<sub>sh,c</sub>/(1+φ<sub>c</sub>)', cls:'Semi-emp', note:'elastic approximation [9]; creep empirical'},
+ {eq:'M9 θ<sub>SP</sub> = min(1, d<sub>SP</sub>/1.5) ; (w/b)<sub>act</sub> = (w/b)<sub>nom</sub>·(1−WR)', cls:'Semi-emp', note:'coverage concept; coefficients empirical [16]'},
+ {eq:'M21 thresholds 3.0/2.5 kg/m³ + SCM windows + Li 0.74 mol/mol', cls:'Emp', note:'CSA [37] / RILEM AAR-7 [35] / Thomas [34]; SCM alkali release not counted ⚠'},
+ {eq:'M22 prescription: w/b ≤ 0.50/0.45 ; C₃A ≤ 8/5% (S1/S2)', cls:'Emp', note:'ACI 318 [41] / EN 206 [42] / Thomas; C₃A-limit credit via SCM window is a modeling choice ⚠'},
+ {eq:'M3′ f<sub>m</sub> = 235·X³', cls:'Emp', note:'Powers–Popovics correlation [6,7]'},
+ {eq:'E<sub>p</sub> = 30·(X/X<sub>u</sub>)³', cls:'Emp', note:'paste-modulus fit'},
+ {eq:'ε<sub>auto</sub> = 700·e<sup>−8(w/b−0.16)</sup> με', cls:'Emp', note:'Tazawa-type [10]'},
+ {eq:'k<sub>t</sub> = 0.06 (t/c strength ratio)', cls:'Emp', note:'most sensitive EMP constant ⚠'},
+ {eq:'ACI NORM: f<sub>r</sub> = 0.62·√f<sub>c</sub> ; f<sub>v</sub> = 0.17·√f<sub>c</sub>', cls:'Emp', note:'code correlations — cross-check only [41]'},
+ {eq:'M13 tables: S, ν<sub>void</sub>, μ<sub>τ</sub>, w<sub>d</sub>, χ<sub>ITZ</sub>, k<sub>ca</sub>', cls:'Emp', note:'literature ranges [21]'},
+ {eq:'k<sub>d</sub> air penalty ; slump s ≈ 300·e<sup>−τ₀/120</sup>', cls:'Emp', note:'calibrated relations'},
+ {eq:'M20 exposure C<sub>s</sub> ; C<sub>crit</sub> ; i<sub>corr</sub> ; x<sub>crack</sub> = 20+0.5·cover ; m', cls:'Emp', note:'code/literature ranges [32,33] ⚠'},
+ {eq:'d<sub>crit</sub> = τ₀/(Δρ·g) settlement trap', cls:'FP-form', note:'yield-stress trapping scale; shape/lubrication coefficient (literature ×2–5) omitted ⚠'},
+ {eq:'M16 α<sub>p,i</sub> = min(α<sub>kin,i</sub>, S·D<sub>i</sub>/(γ<sub>i</sub>·m<sub>i</sub>·Σ<sub>j</sub>D<sub>j</sub>))', cls:'Model', note:'mean-field; conservation by construction [20]'},
+ {eq:'M18 Bogue p<sub>i</sub> weights + calibration ; CH<sub>y</sub> anchors', cls:'Calib', note:'calibrated to fixed anchors [26]; kernel-specific CH<sub>y</sub> ⚠; C₃A declared (M22)'},
+ {eq:'M19 φ<sub>pack</sub>(q) = 0.60+0.26·exp(−((q−0.25)/0.10)²) ; q<sub>eff</sub> LSQ', cls:'Model', note:'φ<sub>pack</sub> heuristic ⚠; Andreasen [27], Funk–Dinger [28]'},
+ {eq:'χ<sub>eff</sub>(φ<sub>cap</sub>) = χ<sub>tab</sub>+(0.95−χ<sub>tab</sub>)·[1−(φ<sub>cap</sub>/0.15)<sup>0.75</sup>]', cls:'Model', note:'anchored interpolation'},
  {eq:'M21 reactivity class (INNOCUOUS/REACTIVE/HIGH/UNKNOWN)', cls:'Declared', note:'EXTERNAL INPUT from ASTM C295 / C1260 / C1567 — geology cannot be computed; UNKNOWN → conservative HIGH + test flag [36]'},
  {eq:'M22 XA class (environment SO₄²⁻) & C₃A (cement certificate)', cls:'Declared', note:'EXTERNAL INPUTS — site investigation and mill certificate [42]'}],
 dual: {
@@ -706,6 +710,7 @@ function paintCharts(){
     if(s.zchk&&st.mx===0) throw new Error("series '"+s.name+"': all values are 0 — if K<sub>R</sub> is genuinely 0 this is correct physics; otherwise the σ<sub>t</sub> chain degenerated");
    });
    const ch=echarts.getInstanceByDom(el)||echarts.init(el);
+   try{ ch.resize(); }catch(e){}
    const dual=vis.some(function(s){return s.y2;});
    function yax(nm,o1,o2,noGrid){
     const o={type:'value',name:subLegend(nm||''),
@@ -1339,50 +1344,54 @@ function showStatus(msg,sticky){let el=document.getElementById('pdf-status');
 function generatePDF(){document.getElementById('pdf-modal').classList.remove('hidden');}
 function closePdfModal(){document.getElementById('pdf-modal').classList.add('hidden');}
 async function loadSeq(list){ for(const u of list){ try{ await loadOne(u); return true; }catch(e){} } return false; }
-/* v5.0.7: print-size chart re-render — canvas bitmaps must be re-rendered at
-   print dimensions; CSS stretching alone only blurs them. */
-window.addEventListener('beforeprint',function(){
- if(!window.echarts)return;
- document.querySelectorAll('#gallery-grid .chart-box').forEach(function(el){
-  const ch=echarts.getInstanceByDom(el);
-  if(ch){ try{ ch.resize({width:1000,height:566}); }catch(e){} }
- });
-});
-window.addEventListener('afterprint',function(){
- setTimeout(function(){
-  if(!window.echarts)return;
+/* v5.0.8: unified print pipeline — one entry for BOTH export paths AND Ctrl+P.
+   enterPrintMode: light theme + gallery single-column + charts re-rendered at
+   1020×590 px (canvas re-render, not CSS stretch); print CSS then displays the
+   canvas at width:100% with height:auto → truly adaptive, aspect preserved.
+   exitPrintMode: restore dark theme, two-column grid, container size. */
+let _printMode=false;
+function enterPrintMode(){
+ if(_printMode) return; _printMode=true;
+ document.documentElement.classList.add('pdf-light','printing');
+ if(window.echarts){
   document.querySelectorAll('#gallery-grid .chart-box').forEach(function(el){
-   const ch=echarts.getInstanceByDom(el);
-   if(ch){ try{ ch.resize(); }catch(e){} }
+   el.style.width='1020px'; el.style.height='590px';
   });
- },60);
-});
-/* v5.0.7: per-panel capture with block-boundary page flow.
-   Fixes: (1) .eq black-on-black — eq background now theme-variable and charts
-   re-rendered light before capture; (2) charts split across pages — page cuts
-   fall only at block boundaries; chart wrappers explode from the grid and are
-   marked unsplittable; only oversized text blocks are sliced. */
+  try{ paintCharts(); }catch(e){}
+ }
+}
+function exitPrintMode(){
+ if(!_printMode) return; _printMode=false;
+ document.documentElement.classList.remove('pdf-light','printing');
+ document.querySelectorAll('#gallery-grid .chart-box').forEach(function(el){
+  el.style.width=''; el.style.height='';
+ });
+ if(window.echarts){ try{ paintCharts(); }catch(e){} }
+}
+window.addEventListener('beforeprint',function(){ enterPrintMode(); });
+window.addEventListener('afterprint',function(){ setTimeout(exitPrintMode,50); });
+/* v5.0.8: per-panel capture with block-boundary page flow; charts captured in
+   print mode (light, 1020×590) so every figure lands whole on its own page row. */
 async function exportPanels(){
  showStatus('Rendering PDF (per-panel)…',true);
- document.documentElement.classList.add('pdf-light');
- if(window.echarts){ try{ paintCharts(); }catch(e){} }
+ enterPrintMode();
  await new Promise(r=>setTimeout(r,300));
- const h2c=window.html2canvas||((await loadSeq(H2C))?window.html2canvas:null);
- if(!h2c) throw new Error('html2canvas CDN unavailable');
- const jsOK=await loadSeq(JSP);
- if(!jsOK||!window.jspdf||!window.jspdf.jsPDF) throw new Error('jsPDF CDN unavailable');
- const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
- const PW=doc.internal.pageSize.getWidth(), PH=doc.internal.pageSize.getHeight(), M=8;
- const imgW=PW-2*M, pageMM=PH-2*M;
- const panels=Array.prototype.slice.call(document.querySelectorAll('.content .panel'));
- if(!panels.length) throw new Error('nothing to export');
- function drawRegion(canvas,y0,y1){
-  const c2=document.createElement('canvas'); c2.width=canvas.width; c2.height=Math.max(1,y1-y0);
-  c2.getContext('2d').drawImage(canvas,0,y0,canvas.width,c2.height,0,0,canvas.width,c2.height);
-  return c2;
- }
- let first=true;
  try{
+  const h2c=window.html2canvas||((await loadSeq(H2C))?window.html2canvas:null);
+  if(!h2c) throw new Error('html2canvas CDN unavailable');
+  const jsOK=await loadSeq(JSP);
+  if(!jsOK||!window.jspdf||!window.jspdf.jsPDF) throw new Error('jsPDF CDN unavailable');
+  const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  const PW=doc.internal.pageSize.getWidth(), PH=doc.internal.pageSize.getHeight(), M=8;
+  const imgW=PW-2*M, pageMM=PH-2*M;
+  const panels=Array.prototype.slice.call(document.querySelectorAll('.content .panel'));
+  if(!panels.length) throw new Error('nothing to export');
+  function drawRegion(canvas,y0,y1){
+   const c2=document.createElement('canvas'); c2.width=canvas.width; c2.height=Math.max(1,y1-y0);
+   c2.getContext('2d').drawImage(canvas,0,y0,canvas.width,c2.height,0,0,canvas.width,c2.height);
+   return c2;
+  }
+  let first=true;
   for(let p=0;p<panels.length;p++){
    const panel=panels[p];
    showStatus('Rendering panel '+(p+1)+'/'+panels.length+'…',true);
@@ -1439,18 +1448,17 @@ async function exportPanels(){
     }
    }
   }
+  doc.save('CFP-Report.pdf');
+  showStatus('PDF downloaded');
  }finally{
-  document.documentElement.classList.remove('pdf-light');
-  if(window.echarts){ try{ paintCharts(); }catch(e){} }
+  exitPrintMode();
  }
- doc.save('CFP-Report.pdf');
- showStatus('PDF downloaded');
 }
 async function exportEngine(eng){ closePdfModal();
  try{
   if(eng==='print'){ showStatus('Print dialog — choose "Save as PDF" (landscape A4)…',true); window.print(); }
   else if(eng==='html2pdf'){ await exportPanels(); }
- }catch(e){ showStatus('Export failed ('+e.message+') — falling back to print',true); window.print(); }
+ }catch(e){ showStatus('Export failed ('+e.message+') — falling back to print',true); exitPrintMode(); window.print(); }
 }
 window.addEventListener('DOMContentLoaded',async function(){
  initInputSpecs();
